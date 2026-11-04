@@ -1,0 +1,24 @@
+name: ci
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: PHP syntax
+        run: for f in sheet-flow-rental-property-calculator/*.php tests/*.php; do php -l "$f"; done
+      - name: Shortcode render tests
+        run: php tests/render_test.php
+      - name: Math cross-check vs Sheet & Flow MCP server
+        run: |
+          curl -fsSL https://raw.githubusercontent.com/onyxaholguin-cyber/sheet-and-flow-mcp/main/server/calc.js -o /tmp/mcp_calc.js
+          MCP_CALC=/tmp/mcp_calc.js node tests/crosscheck.test.js
+  plugin-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: wordpress/plugin-check-action@v1
+        with:
+          build-dir: './sheet-flow-rental-property-calculator'
